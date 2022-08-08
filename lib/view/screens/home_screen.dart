@@ -16,6 +16,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Timer? _debounce;
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (_controller.position.pixels > _controller.position.maxScrollExtent - 300) {
+      Provider.of<HomeScreenViewModel>(context, listen: false).loadMoreGifs();
+    }
+  }
 
   _onSearchChanged(String query, HomeScreenViewModel viewModel) {
     _debounce?.cancel();
@@ -95,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return GridView.builder(
       itemCount: viewModel.gifs.length,
+      controller: _controller,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 10.0,

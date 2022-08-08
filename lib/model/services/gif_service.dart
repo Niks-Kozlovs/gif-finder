@@ -14,10 +14,14 @@ class GifService {
       var url = Uri.parse(
           '$gifSearchURL?api_key=${dotenv.env['GIPHY_API_KEY']}&limit=$objectLimit&q=$search&offset=$offset');
       final response = await http.get(url);
-      var result = json.decode(response.body);
-      var meta = result['meta'];
+      var body = json.decode(response.body);
+      var meta = body['meta'];
       if (response.statusCode == 200 && meta['status'] == 200) {
-        return Success(response: gifFromJson(result['data']));
+        final response = {
+          'gifs': gifFromJson(body['data']),
+          'count': body['pagination']['total_count'],
+        };
+        return Success(response: response);
       }
 
       if (meta['status'] != 200) {

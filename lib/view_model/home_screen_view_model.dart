@@ -9,6 +9,7 @@ class HomeScreenViewModel extends ChangeNotifier {
   List<Gif> _gifs = [];
   String _errorMessage = '';
   String _searchQuery = '';
+  int _totalCount = 0;
 
   bool get loading => _loading;
   bool get loadingMoreGifs => _loadingMoreGifs;
@@ -32,6 +33,7 @@ class HomeScreenViewModel extends ChangeNotifier {
 
   appendGifs(List<Gif> gifs) {
     _gifs.addAll(gifs);
+    notifyListeners();
   }
 
   setErrorMessage (String errorMessage) {
@@ -45,7 +47,9 @@ class HomeScreenViewModel extends ChangeNotifier {
     var response = await GifService.getGifs(query);
 
     if (response is Success) {
-      setGifs(response.response as List<Gif>);
+      Map<String, dynamic> data = response.response as Map<String, dynamic>;
+      setGifs(data["gifs"] as List<Gif>);
+      _totalCount = data['count'];
     }
     if (response is Failure) {
       setErrorMessage(response.errorResponse as String);
@@ -55,12 +59,21 @@ class HomeScreenViewModel extends ChangeNotifier {
   }
 
   loadMoreGifs() async {
+    if (_loadingMoreGifs) {
+      return;
+    }
+
+    if (_totalCount == _gifs.length) {
+      return;
+    }
+
     setLoadingMoreGifs(true);
 
     var response = await GifService.getGifs(_searchQuery, _gifs.length);
 
     if (response is Success) {
-      appendGifs(response.response as List<Gif>);
+      Map<String, dynamic> data = response.response as Map<String, dynamic>;
+      appendGifs(data["gifs"] as List<Gif>);
     }
     if (response is Failure) {
       setErrorMessage(response.errorResponse as String);
